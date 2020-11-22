@@ -32,6 +32,7 @@ def toplevel(vVentana, vCampos):
     ttk.Button(frame, text = 'Guardar ' + vVentana, command = lambda: agregar(vVentana, vCampos, top)).grid(row = len(vCampos)+1, columnspan = 2, sticky = W + E)
     tabla(vCampos, top)
     llenartabla(vVentana, top)
+    
     #Botones eliminar, editar y generar
     ttk.Button(top, text = 'ELIMINAR', command = lambda: eliminar(vVentana, vCampos, top)).grid(row = len(vCampos)+1, column = 0, sticky = W + E)
     ttk.Button(top, text = 'EDITAR', command = lambda: editar(vVentana, vCampos, top, frame)).grid(row = len(vCampos)+1, column = 1, sticky = W + E)
@@ -54,7 +55,7 @@ def tabla(vCampos, top):
     for (id_campo, campo) in vCampos.items():
         top.tree.heading(campo["label"], text = campo["label"], anchor = CENTER)
 
-#Leer
+########################################## LEER ############################################
 def llenartabla(vVentana, top):
     #Limpiando tabla
     records = top.tree.get_children()
@@ -67,7 +68,7 @@ def llenartabla(vVentana, top):
     for row in db_rows:
         top.tree.insert('', 'end', values = row)
 
-#Agregar
+########################################## AGREGAR ############################################
 def agregar(vVentana, vCampos, top):
     parameters = []
     query = f'INSERT INTO {vVentana} VALUES('
@@ -84,8 +85,6 @@ def agregar(vVentana, vCampos, top):
             query += ','
 
     query += ')'
-    print(query)
-    print(parameters)
     run_query(query, parameters)
     llenartabla(vVentana, top)
     warning("Agregado", "Registro agregado correctamente", top)
@@ -98,16 +97,10 @@ def nuevovalor(vCampos,vVentana, top, edit_wind):
             entry = vCampos[parametro]["entry"]
             parameters.append(entry.get())
       edit_records(parameters,vVentana, top, edit_wind, vCampos)
-        #print(parametro)
-        #print(entry)
-        #entry = vCampos[parametro]["entry"]
-        #print (parametro.get())
-        #parameters.append(entry.get())
 
 def editar(vVentana, vCampos, top, frame):
-    print('editado')
+
     parameters = []
-    #Message['text'] = ''
     try:
       top.tree.item(top.tree.selection())['values'][0]
     except IndexError as e:
@@ -116,7 +109,6 @@ def editar(vVentana, vCampos, top, frame):
 
     edit_wind = Toplevel()
     edit_wind.title(f'Editar {vVentana}')
-    #render_form(vCampos, top, edit_wind)
 
     for (i, (id_campo, campo)) in enumerate(vCampos.items()):
           
@@ -130,17 +122,9 @@ def editar(vVentana, vCampos, top, frame):
 
           #Entry(edit_wind, textvariable = StringVar(edit_wind, value = vCampos[id_campo])).grid(row = i, column = 2)
 
-    #print(vCampos)  
-
-
-
-    print(parameters)            
-    #Button(edit_wind, text = 'Update', command = lambda: edit_records().grid(row = 4, column = 2, sticky = W)
     ttk.Button(edit_wind, text = 'EDITAR', command = lambda: nuevovalor(vCampos, vVentana, top, edit_wind)).grid(row = len(vCampos)+1, column = 2)
 
 def edit_records(parameters,vVentana, top, edit_wind, vCampos):
-        print(parameters)
-        #query = f'UPDATE {vVentana} SET name = ?, price = ? WHERE name = ? AND price = ?'
         query = f'UPDATE {vVentana} SET '
          
         for key in range(len(dict.keys(vCampos))):
@@ -153,12 +137,11 @@ def edit_records(parameters,vVentana, top, edit_wind, vCampos):
 
         run_query(query, parameters)
         edit_wind.destroy()
-        print(query)
         llenartabla(vVentana, top)
         warning("Modificador", "Registro modificado correctamente", top)
 
 
-
+########################################## ELIMINAR ############################################
 def eliminar(vVentana, vCampos, top):
     vTitulo = vVentana
     vCondicion = list( dict.keys( vCampos ) )[ 0 ]
@@ -174,9 +157,11 @@ def eliminar(vVentana, vCampos, top):
     llenartabla(vTitulo, top)
     warning("Eliminado", "Registro eliminado correctamente", top)
 
+########################################## ELIMINAR ############################################
 def generarhtml():
     print("generado")
 
+########################################## QUERY ############################################    
 def run_query(query, parameters = ()):
     with sqlite3.connect(db_name) as conn:
         cursor = conn.cursor()
