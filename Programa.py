@@ -34,7 +34,7 @@ def toplevel(vVentana, vCampos):
     llenartabla(vVentana, top)
     #Botones eliminar, editar y generar
     ttk.Button(top, text = 'ELIMINAR', command = lambda: eliminar(vVentana, vCampos, top)).grid(row = len(vCampos)+1, column = 0, sticky = W + E)
-    ttk.Button(top, text = 'EDITAR', command = editar).grid(row = len(vCampos)+1, column = 1, sticky = W + E)
+    ttk.Button(top, text = 'EDITAR', command = lambda: editar(vVentana, vCampos, top, frame)).grid(row = len(vCampos)+1, column = 1, sticky = W + E)
     #ttk.Button(top, text = 'GENERAR HTML', command = generarhtml).grid(row = len(vCampos)+2, column = 0, sticky = W + E)
 
 #Formularios renderizados
@@ -75,7 +75,9 @@ def agregar(vVentana, vCampos, top):
     for key in range(len(dict.keys(vCampos))):
         query += '?'
         parametro = (list( dict.keys( vCampos ) )[ key ])
+        
         entry = vCampos[parametro]["entry"]
+       
         parameters.append(entry.get())
         entry.delete(0, END)   
         if key != len(dict.keys(vCampos)) - 1:
@@ -83,13 +85,79 @@ def agregar(vVentana, vCampos, top):
 
     query += ')'
     print(query)
+    print(parameters)
     run_query(query, parameters)
     llenartabla(vVentana, top)
-    Message(top, text="agregado correctamente")
+    warning("Agregado", "Registro agregado correctamente", top)
 
+########################################## EDITAR ############################################
+def nuevovalor(vCampos,vVentana, top, edit_wind):
+      parameters = []
+      for key in range(len(dict.keys(vCampos))):
+            parametro = (list( dict.keys( vCampos ) )[ key ])
+            entry = vCampos[parametro]["entry"]
+            parameters.append(entry.get())
+      edit_records(parameters,vVentana, top, edit_wind, vCampos)
+        #print(parametro)
+        #print(entry)
+        #entry = vCampos[parametro]["entry"]
+        #print (parametro.get())
+        #parameters.append(entry.get())
 
-def editar():
+def editar(vVentana, vCampos, top, frame):
     print('editado')
+    parameters = []
+    #Message['text'] = ''
+    try:
+      top.tree.item(top.tree.selection())['values'][0]
+    except IndexError as e:
+      warning("Error", "Por favor seleccionar un registro", top)
+      return
+
+    edit_wind = Toplevel()
+    edit_wind.title(f'Editar {vVentana}')
+    #render_form(vCampos, top, edit_wind)
+
+    for (i, (id_campo, campo)) in enumerate(vCampos.items()):
+          
+          #vCampos[id_campo] = top.tree.item(top.tree.selection())['values'][i]
+          Label(edit_wind, text = campo["label"]).grid(row = i, column = 1)
+          vCampos[id_campo]["entry"] = Entry(edit_wind)
+          vCampos[id_campo]["entry"].grid(row = i, column = 2)
+          vCampos[id_campo]["entry"].insert(0, top.tree.item(top.tree.selection())['values'][i])
+          if(i == 0):
+                vCampos[id_campo]["entry"].configure(state='readonly')
+
+          #Entry(edit_wind, textvariable = StringVar(edit_wind, value = vCampos[id_campo])).grid(row = i, column = 2)
+
+    #print(vCampos)  
+
+
+
+    print(parameters)            
+    #Button(edit_wind, text = 'Update', command = lambda: edit_records().grid(row = 4, column = 2, sticky = W)
+    ttk.Button(edit_wind, text = 'EDITAR', command = lambda: nuevovalor(vCampos, vVentana, top, edit_wind)).grid(row = len(vCampos)+1, column = 2)
+
+def edit_records(parameters,vVentana, top, edit_wind, vCampos):
+        print(parameters)
+        #query = f'UPDATE {vVentana} SET name = ?, price = ? WHERE name = ? AND price = ?'
+        query = f'UPDATE {vVentana} SET '
+         
+        for key in range(len(dict.keys(vCampos))):
+            parametro = (list( dict.keys( vCampos ) )[ key ])            
+            query += f'{list( dict.keys( vCampos ) )[ key ]} = ? '
+
+            if key != len(dict.keys(vCampos)) - 1:
+                  query += ','
+        query += f'where {(list( dict.keys( vCampos ) )[ 0 ])} = {parameters[0]}'       
+
+        run_query(query, parameters)
+        edit_wind.destroy()
+        print(query)
+        llenartabla(vVentana, top)
+        warning("Modificador", "Registro modificado correctamente", top)
+
+
 
 def eliminar(vVentana, vCampos, top):
     vTitulo = vVentana
@@ -98,12 +166,13 @@ def eliminar(vVentana, vCampos, top):
       curItem = top.tree.item(top.tree.focus())
       valor = curItem['values'][0]
     except IndexError as e:
-      print("Selecciona una registro")
+      warning("Error", "Por favor seleccionar un registro", top)
       return
                
     query = f'DELETE FROM {vTitulo} WHERE {vCondicion} = ?'
     run_query(query, (valor, ))
     llenartabla(vTitulo, top)
+    warning("Eliminado", "Registro eliminado correctamente", top)
 
 def generarhtml():
     print("generado")
@@ -115,6 +184,8 @@ def run_query(query, parameters = ()):
         conn.commit()
     return result
 
+def warning(title, information, top):
+    messagebox.showinfo(title, information, parent=top)
 
 #Informacion
 def estudiantes():
