@@ -5,10 +5,15 @@ from tkinter import messagebox
 import sqlite3
 import webbrowser
 import os
+from tkinter.ttk import * 
 
+#Ventana principal
 app = Tk()
-app.title("Sistema de calificaciones estudiantiles")
-app.geometry("800x350")
+app.title("Sistema de calificaciones estudiantil")
+MyLeftPos = (app.winfo_screenwidth() - 500) / 2
+myTopPos = (app.winfo_screenheight() - 300) / 2
+app.geometry( "%dx%d+%d+%d" % (500, 300, MyLeftPos, myTopPos))
+
 
 vVentana = str()
 vCampos = {}
@@ -23,39 +28,53 @@ w, h = app.winfo_screenwidth(), app.winfo_screenheight()
 #Toplevel
 def toplevel(vVentana, vCampos):
     top = Toplevel() 
-    top.geometry("%dx%d+0+0" % (w, h))
+    MyLeftPos = (top.winfo_screenwidth() - 900) / 2
+    myTopPos = (top.winfo_screenheight() - 500) / 2
+    top.geometry( "%dx%d+%d+%d" % (900, 500, MyLeftPos, myTopPos))  
     top.title(vVentana) 
+
+    #                                                                    Frame de formulario                                                                         #
+    ##################################################################################################################################################################
     frame = LabelFrame(top, text = 'Registrar '+ vVentana)
-    frame.grid(row = 0, column = 0, columnspan = 3, pady = 20)
+    frame.grid(row = 0, column = 0, columnspan = 1, pady = 20)
+    frame.place()
 
+    #Renderizar formulario
     render_form(vCampos, top, frame)
-    ttk.Button(frame, text = 'Guardar ' + vVentana, command = lambda: agregar(vVentana, vCampos, top)).grid(row = len(vCampos)+1, columnspan = 2, sticky = W + E)
-    tabla(vCampos, top)
-    llenartabla(vVentana, top)
-    
-    #Botones eliminar, editar y generar
-    ttk.Button(top, text = 'ELIMINAR', command = lambda: eliminar(vVentana, vCampos, top)).grid(row = len(vCampos)+1, column = 0, sticky = W + E)
-    ttk.Button(top, text = 'EDITAR', command = lambda: editar(vVentana, vCampos, top, frame)).grid(row = len(vCampos)+1, column = 1, sticky = W + E)
-    #ttk.Button(top, text = 'GENERAR HTML', command = generarhtml).grid(row = len(vCampos)+2, column = 0, sticky = W + E)
 
-#Formularios renderizados
+    #Boton para guardar
+    ttk.Button(frame, text = 'Guardar ' + vVentana, command = lambda: agregar(vVentana, vCampos, top)).grid(row = len(vCampos)+1, columnspan = 2, sticky = W + E)
+    ##################################################################################################################################################################
+
+
+    #Tabla
+    tabla(vCampos, top)
+    #Datos de tabla
+    llenartabla(vVentana, top)
+
+    #Botones eliminar, editar y generar
+    ttk.Button(top, text = 'ELIMINAR', command = lambda: eliminar(vVentana, vCampos, top)).grid(row = len(vCampos)+1, columnspan = 1, column = 0, sticky = W + E)
+    ttk.Button(top, text = 'EDITAR', command = lambda: editar(vVentana, vCampos, top, frame)).grid(row = len(vCampos)+1, columnspan = 1, column = 1, sticky = W + E)
+
+#Render de fomrularios
 def render_form(vCampos, top, frame):
     for (i, (id_campo, campo)) in enumerate(vCampos.items()):
         Label(frame, text = campo["label"]).grid(row = i, column = 0)
         vCampos[id_campo]["entry"] = Entry(frame)
         vCampos[id_campo]["entry"].focus()
         vCampos[id_campo]["entry"].grid(row = i, column = 1) 
+        
 
-#Tabla
+#Render de tabla
 def tabla(vCampos, top):
     top.tree = ttk.Treeview(top, height = 10, columns = [ campo["label"] for campo in vCampos.values()])
-    top.tree.column("#0", width=0)
+    top.tree.column("#0", width=5)
     top.tree.grid(row = len(vCampos.items()), column = 0, columnspan = 2)
 
     for (id_campo, campo) in vCampos.items():
         top.tree.heading(campo["label"], text = campo["label"], anchor = CENTER)
-
-########################################## LEER ############################################
+    
+#Leer
 def llenartabla(vVentana, top):
     #Limpiando tabla
     records = top.tree.get_children()
@@ -68,7 +87,7 @@ def llenartabla(vVentana, top):
     for row in db_rows:
         top.tree.insert('', 'end', values = row)
 
-########################################## AGREGAR ############################################
+#Agregar
 def agregar(vVentana, vCampos, top):
     parameters = []
     query = f'INSERT INTO {vVentana} VALUES('
@@ -85,6 +104,8 @@ def agregar(vVentana, vCampos, top):
             query += ','
 
     query += ')'
+    print(query)
+    print(parameters)
     run_query(query, parameters)
     llenartabla(vVentana, top)
     warning("Agregado", "Registro agregado correctamente", top)
@@ -99,7 +120,6 @@ def nuevovalor(vCampos,vVentana, top, edit_wind):
       edit_records(parameters,vVentana, top, edit_wind, vCampos)
 
 def editar(vVentana, vCampos, top, frame):
-
     parameters = []
     try:
       top.tree.item(top.tree.selection())['values'][0]
@@ -108,20 +128,21 @@ def editar(vVentana, vCampos, top, frame):
       return
 
     edit_wind = Toplevel()
+    
     edit_wind.title(f'Editar {vVentana}')
+    MyLeftPos = (top.winfo_screenwidth() - 300) / 2
+    myTopPos = (top.winfo_screenheight() - 300) / 2
+    edit_wind.geometry( "%dx%d+%d+%d" % (300, 300, MyLeftPos, myTopPos))  
 
     for (i, (id_campo, campo)) in enumerate(vCampos.items()):
           
-          #vCampos[id_campo] = top.tree.item(top.tree.selection())['values'][i]
           Label(edit_wind, text = campo["label"]).grid(row = i, column = 1)
           vCampos[id_campo]["entry"] = Entry(edit_wind)
           vCampos[id_campo]["entry"].grid(row = i, column = 2)
           vCampos[id_campo]["entry"].insert(0, top.tree.item(top.tree.selection())['values'][i])
           if(i == 0):
                 vCampos[id_campo]["entry"].configure(state='readonly')
-
-          #Entry(edit_wind, textvariable = StringVar(edit_wind, value = vCampos[id_campo])).grid(row = i, column = 2)
-
+       
     ttk.Button(edit_wind, text = 'EDITAR', command = lambda: nuevovalor(vCampos, vVentana, top, edit_wind)).grid(row = len(vCampos)+1, column = 2)
 
 def edit_records(parameters,vVentana, top, edit_wind, vCampos):
@@ -135,13 +156,18 @@ def edit_records(parameters,vVentana, top, edit_wind, vCampos):
                   query += ','
         query += f'where {(list( dict.keys( vCampos ) )[ 0 ])} = {parameters[0]}'       
 
+        #Ejecutar comando
         run_query(query, parameters)
+
+        #Cerrar popup
         edit_wind.destroy()
+
+        #Llenar tabla
         llenartabla(vVentana, top)
         warning("Modificador", "Registro modificado correctamente", top)
 
 
-########################################## ELIMINAR ############################################
+
 def eliminar(vVentana, vCampos, top):
     vTitulo = vVentana
     vCondicion = list( dict.keys( vCampos ) )[ 0 ]
@@ -157,11 +183,9 @@ def eliminar(vVentana, vCampos, top):
     llenartabla(vTitulo, top)
     warning("Eliminado", "Registro eliminado correctamente", top)
 
-########################################## ELIMINAR ############################################
 def generarhtml():
     print("generado")
 
-########################################## QUERY ############################################    
 def run_query(query, parameters = ()):
     with sqlite3.connect(db_name) as conn:
         cursor = conn.cursor()
@@ -241,7 +265,6 @@ menubarra = Menu(app)
 menubarra.add_command(label="Estudiantes", command=estudiantes)
 menubarra.add_command(label="Materias", command=materias)
 menubarra.add_command(label="Calificaciones", command=calificaciones)
-
 
 # Mostrar el menu
 app.config(menu=menubarra)
