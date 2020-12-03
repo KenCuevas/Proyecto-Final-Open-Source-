@@ -13,8 +13,8 @@ import functools
 app = Tk()
 app.title("Sistema de calificaciones estudiantil")
 MyLeftPos = (app.winfo_screenwidth() - 500) / 2
-myTopPos = (app.winfo_screenheight() - 300) / 2
-app.geometry( "%dx%d+%d+%d" % (500, 300, MyLeftPos, myTopPos))
+myTopPos = (app.winfo_screenheight() - 100) / 2
+app.geometry( "%dx%d+%d+%d" % (500, 100, MyLeftPos, myTopPos))
 
 vVentana = str()
 vCampos = {}
@@ -400,10 +400,10 @@ app.config(menu=menubarra)
 
 # Combo box de estudiantes #
 Estudiantes_combobox = ttk.Combobox(app, width=40)
-Estudiantes_combobox.place(x=110, y=150)
+Estudiantes_combobox.place(x=110, y=30)
 
 BuscarButton = Button(app, text="GENERAR HTML", command=lambda: informacion(estudiante[Estudiantes_combobox.current()]))
-BuscarButton.place(x=195, y=180)
+BuscarButton.place(x=195, y=60)
 
 query = "SELECT Nombre, Matricula FROM Estudiante"
 estudiante = []
