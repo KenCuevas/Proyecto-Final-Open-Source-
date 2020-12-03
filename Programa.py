@@ -223,34 +223,37 @@ def reportehtml(estudiante, Materias, Calificaciones, promedio):
                   str(estudiante[1]
                       ) + " </th> <td> "+str(estudiante[i])+" </td> " + \
                       "<td> "+str(materia)+" </td> "
+                      
+                  row = str(row) + "<td> <p>Practica 1: "+str(Calificaciones[i][0])+"</p> " + \
+                        "<p>Practica 2: "+str(Calificaciones[i][1])+"</p> "+ \
+                        "<p>Foro 1: "+str(Calificaciones[i][2])+"</p>"+ \
+                        "<p>Foro 2: "+str(Calificaciones[i][3])+"</p>" + \
+                        "<p>Primer parcial: "+str(Calificaciones[i][4])+"</p>" + \
+                        "<p>Segundo parcial: "+str(Calificaciones[i][5])+"</p>" + \
+                        "<p>Examen final: "+str(Calificaciones[i][6])+"</p>" + \
+                        "<p>Promedio: "+str(promedio[0][i])+"</p>" + \
+                        "</td> <td>" + \
+                        str(promedio[1][i])+" </td > </tr>"
             else:
                   
                   row += "<tr><th scope = 'row' > " + \
                           " </th> <td> --- </td> " + \
                           "<td> "+str(materia)+" </td> "
-            
-            
-            for it, calificacion in enumerate(Calificaciones):
-                  print(counter)  
-                  if counter == 0:
-                    counter=counter+1  
-                    row = str(row) + "<td> <p>Practica 1: "+str(calificacion[0])+"</p> " + \
-                        "<p>Practica 2: "+str(calificacion[1])+"</p> "+ \
-                        "<p>Foro 1: "+str(calificacion[2])+"</p>"+ \
-                        "<p>Foro 2: "+str(calificacion[3])+"</p>" + \
-                        "<p>Primer parcial: "+str(calificacion[4])+"</p>" + \
-                        "<p>Segundo parcial: "+str(calificacion[5])+"</p>" + \
-                        "<p>Examen final: "+str(calificacion[6])+"</p>" + \
-                        "<p>Promedio: "+str(promedio[0][it])+"</p>" + \
+
+                  row = str(row) + "<td> <p>Practica 1: "+str(Calificaciones[i][0])+"</p> " + \
+                        "<p>Practica 2: "+str(Calificaciones[i][1])+"</p> "+ \
+                        "<p>Foro 1: "+str(Calificaciones[i][2])+"</p>"+ \
+                        "<p>Foro 2: "+str(Calificaciones[i][3])+"</p>" + \
+                        "<p>Primer parcial: "+str(Calificaciones[i][4])+"</p>" + \
+                        "<p>Segundo parcial: "+str(Calificaciones[i][5])+"</p>" + \
+                        "<p>Examen final: "+str(Calificaciones[i][6])+"</p>" + \
+                        "<p>Promedio: "+str(promedio[0][i])+"</p>" + \
                         "</td> <td>" + \
-                        str(promedio[1][it])+" </td > </tr>"
-                  
-                  else:
-                        row += "<tr><th scope = 'row' > " + \
-                              " </th> <td> </td> " + \
-                              "<td> "+str(materia)+" </td> "
+                        str(promedio[1][i])+" </td > </tr>"                
+            
+
                                                                 
-                     
+                    
 
 
 
