@@ -90,7 +90,7 @@ def tabla(vCampos, top, vVentana):
     top.tree = ttk.Treeview(top, height = 10, columns = [ campo["label"] for campo in vCampos.values()])
     top.tree.column("#0", width=3, minwidth=1)
     top.tree.grid(row = len(vCampos.items()), column = 1, columnspan = 2)
-    print(vVentana)
+
     for (id_campo, campo) in vCampos.items():
           if vVentana == "Calificacion":
                 top.tree.column(campo["label"], width=100, minwidth=20) 
@@ -127,8 +127,6 @@ def agregar(vVentana, vCampos, top):
             query += ','
 
     query += ')'
-    print(query)
-    print(parameters)
     run_query(query, parameters)
     llenartabla(vVentana, top)
     warning("Agregado", "Registro agregado correctamente", top)
@@ -190,7 +188,6 @@ def edit_records(parameters,vVentana, top, edit_wind, vCampos):
         query += "where " + str((list( dict.keys( vCampos ) )[ 0 ])) + "='" + str(parameters[0]) + "';"       
 
         #Ejecutar comando
-        print(query, parameters)
         run_query(query, parameters)
 
         #Cerrar popup
@@ -220,14 +217,14 @@ def promedio(calificaciones):
 
       return (promedios,literales)
 
+
+################################################################ GENERAR HTML ############################################################################
 def reportehtml(estudiante, Materias, Calificaciones, promedio):
-      print(estudiante, Materias, Calificaciones,promedio)
       row = ""
       counter = 0
 
       for i, materia in enumerate(Materias):
             counter = 0
-            print(counter)  
             if i == 0:
                   
                   row = str(row) + "<tr><th scope = 'row' > " + \
@@ -415,10 +412,5 @@ for row in db_rows:
 
 Estudiantes_combobox['values']=estudiante
 
-
-################################################################ GENERAR HTML ############################################################################
-
 # Mostrar la ventana
 app.mainloop()
-
-
