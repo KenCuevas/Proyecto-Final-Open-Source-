@@ -153,10 +153,20 @@ def editar(vVentana, vCampos, top, frame):
     edit_wind = Toplevel()
     
     edit_wind.title(f'Editar {vVentana}')
-    MyLeftPos = (top.winfo_screenwidth() - 300) / 2
-    myTopPos = (top.winfo_screenheight() - 300) / 2
-    edit_wind.geometry( "%dx%d+%d+%d" % (300, 300, MyLeftPos, myTopPos))  
+    if vVentana == "Materia" :
+          MyLeftPos = (top.winfo_screenwidth() - 200) / 2
+          myTopPos = (top.winfo_screenheight() - 70) / 2
+          edit_wind.geometry( "%dx%d+%d+%d" % (200, 70, MyLeftPos, myTopPos))  
 
+    elif vVentana == "Estudiante" : 
+          MyLeftPos = (top.winfo_screenwidth() - 200) / 2
+          myTopPos = (top.winfo_screenheight() - 100) / 2
+          edit_wind.geometry( "%dx%d+%d+%d" % (200, 100, MyLeftPos, myTopPos))           
+    else:   
+          MyLeftPos = (top.winfo_screenwidth() - 230) / 2
+          myTopPos = (top.winfo_screenheight() - 250) / 2
+          edit_wind.geometry( "%dx%d+%d+%d" % (230,250, MyLeftPos, myTopPos))   
+               
     for (i, (id_campo, campo)) in enumerate(vCampos.items()):
           
           Label(edit_wind, text = campo["label"]).grid(row = i, column = 1)
@@ -177,14 +187,15 @@ def edit_records(parameters,vVentana, top, edit_wind, vCampos):
 
             if key != len(dict.keys(vCampos)) - 1:
                   query += ','
-        query += f'where {(list( dict.keys( vCampos ) )[ 0 ])} = {parameters[0]}'       
+        query += "where " + str((list( dict.keys( vCampos ) )[ 0 ])) + "='" + str(parameters[0]) + "';"       
 
         #Ejecutar comando
+        print(query, parameters)
         run_query(query, parameters)
 
         #Cerrar popup
         edit_wind.destroy()
-
+        
         #Llenar tabla
         llenartabla(vVentana, top)
         warning("Modificador", "Registro modificado correctamente", top)
@@ -250,13 +261,6 @@ def reportehtml(estudiante, Materias, Calificaciones, promedio):
                         "<p>Promedio: "+str(promedio[0][i])+"</p>" + \
                         "</td> <td>" + \
                         str(promedio[1][i])+" </td > </tr>"                
-            
-
-                                                                
-                    
-
-
-
 
       # Content to be published
       content = row
@@ -343,8 +347,8 @@ def materias():
       "Nombre": {
         "label": "Nombre",
       },
-      "Creditos": {
-        "label": "Creditos",
+      "Credito": {
+        "label": "Credito",
       }
     }
     toplevel(vVentana, vCampos)
@@ -355,25 +359,25 @@ def calificaciones():
       "Id": {
         "label":"Id"
       },
-      "practica 1": {
+      "Practica1": {
         "label": "practica 1",
       },
-      "practica 2": {
+      "Practica2": {
         "label": "practica 2",
       },
-      "foro 1": {
+      "Foro1": {
         "label": "foro 1",
       },
-      "foro 2":  {
+      "Foro2":  {
         "label":"foro 2",
       },
-      "primer parcial": {
+      "Parcial1": {
         "label": "primer parcial",
       },
-      "segundo parcial":  {
+      "Parcial2":  {
         "label":"segundo parcial",
       },
-      "examen final": {
+      "ExamenFinal": {
         "label": "examen final",
       },
       "Materia": {
