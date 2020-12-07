@@ -1,3 +1,10 @@
+"""
+Integrantes del grupo:
+    Juan Carlos Borissova 20190119
+    Kenny Cuevas 20182146
+    Mariel Liberato 20182341
+    Armando Peña Martinez 20180192
+"""
 import os.path
 from tkinter import *
 from tkinter import ttk
@@ -7,7 +14,8 @@ from jinja2 import FileSystemLoader, Environment
 import webbrowser
 import os
 from tkinter.ttk import * 
-import functools 
+import functools
+#import folium #importar dependencias para el acceso a mapas 
 
 #Ventana principal
 app = Tk()
@@ -335,6 +343,9 @@ def estudiantes():
       "Sexo": {
         "label": "Sexo"
       },
+            "Lugar de procedencia": {
+          "label": "Procedencia"
+          },
     }
     toplevel(vVentana, vCampos)
 
