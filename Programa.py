@@ -15,6 +15,8 @@ import webbrowser
 import os
 from tkinter.ttk import * 
 import functools
+import requests
+import json
 #import folium #importar dependencias para el acceso a mapas 
 
 #Ventana principal
@@ -34,21 +36,12 @@ db_name = 'Practica4.db'
 w, h = app.winfo_screenwidth(), app.winfo_screenheight()
 
 #Toplevel
-def toplevel(vVentana, vCampos):
+def toplevel(vVentana, vCampos, vTamano):
     top = Toplevel()
-    
-    if vVentana == "Calificacion":
-          MyLeftPos = (top.winfo_screenwidth() - 1170) / 2
-          myTopPos = (top.winfo_screenheight() - 500) / 2
-          top.geometry( "%dx%d+%d+%d" % (1170, 500, MyLeftPos, myTopPos))
-    elif vVentana == "Materia":
-          MyLeftPos = (top.winfo_screenwidth() - 550) / 2
-          myTopPos = (top.winfo_screenheight() - 420) / 2
-          top.geometry( "%dx%d+%d+%d" % (550, 420, MyLeftPos, myTopPos))            
-    else:
-          MyLeftPos = (top.winfo_screenwidth() - 760) / 2
-          myTopPos = (top.winfo_screenheight() - 420) / 2
-          top.geometry( "%dx%d+%d+%d" % (760, 420, MyLeftPos, myTopPos))  
+    MyLeftPos = (top.winfo_screenwidth() - vTamano[0]) / 2
+    myTopPos = (top.winfo_screenheight() - vTamano[1]) / 2
+    top.geometry( "%dx%d+%d+%d" % (vTamano[0], vTamano[1], MyLeftPos, myTopPos))
+
 
     #                                                                    Frame de formulario                                                                         #
     ##################################################################################################################################################################
@@ -57,7 +50,7 @@ def toplevel(vVentana, vCampos):
     frame.place()
 
     #Renderizar formulario
-    render_form(vCampos, top, frame)
+    render_form(vCampos, top, frame, vVentana)
 
     #Boton para guardar
     ttk.Button(frame, text = 'Guardar ' + vVentana, command = lambda: agregar(vVentana, vCampos, top)).grid(row = len(vCampos)+1, columnspan = 4, sticky = W + E)
@@ -71,13 +64,17 @@ def toplevel(vVentana, vCampos):
     llenartabla(vVentana, top)
 
     #Botones eliminar, editar y generar
-    ttk.Button(top, text = '', command = lambda: eliminar(vVentana, vCampos, top)).grid(row = len(vCampos)+1, columnspan = 1, column = 0, sticky = W + E)
+    ttk.Button(top, text = '').grid(row = len(vCampos)+1, columnspan = 1, column = 0, sticky = W + E)
     ttk.Button(top, text = 'ELIMINAR', command = lambda: eliminar(vVentana, vCampos, top)).grid(row = len(vCampos)+1, columnspan = 1, column = 1, sticky = W + E)
-    ttk.Button(top, text = 'EDITAR', command = lambda: editar(vVentana, vCampos, top, frame)).grid(row = len(vCampos)+1, columnspan = 1, column = 2, sticky = W + E)
+    ttk.Button(top, text = 'EDITAR', command = lambda: editar(vVentana, vCampos, top, vTamano, frame)).grid(row = len(vCampos)+1, columnspan = 1, column = 2, sticky = W + E)
     ###################################################################################################################################################################
 
 #Render de fomrularios
-def render_form(vCampos, top, frame):
+def render_form(vCampos, top, frame, vVentana):
+    #Enter funtion
+    def Enter(event):
+          Apicall(vCampos,top)
+
     for (i, (id_campo, campo)) in enumerate(vCampos.items()):
         if i>4 :
               Label(frame, text = campo["label"]).grid(row = (i-5), column = 2)
@@ -86,13 +83,50 @@ def render_form(vCampos, top, frame):
 
         vCampos[id_campo]["entry"] = Entry(frame)
         vCampos[id_campo]["entry"].focus()
-
+        
         if i>4 :
               vCampos[id_campo]["entry"].grid(row = (i-5), column = 3) 
         else:
               vCampos[id_campo]["entry"].grid(row = (i), column = 1) 
-        
 
+        if (i == 1):
+              
+              
+              vCampos[id_campo]["entry"].bind("<Return>", Enter)
+        if (vVentana == "Estudiante") and (i > 1):
+              vCampos[id_campo]["entry"].configure(state='readonly')       
+    
+
+#Validar cedula
+def ValidarCedula(vCampos, informacion, top):
+      print(informacion['ok'])
+      vCedulaExiste=informacion['ok']
+      print (vCedulaExiste)
+      if (vCedulaExiste == True):
+            for (i, (id_campo, campo)) in enumerate(vCampos.items()):
+                  if i > 1:
+                        print(campo["label"])
+                        print(informacion[str(campo["label"])])
+                        vCampos[id_campo]["entry"].configure(state='normal')
+                        vCampos[id_campo]["entry"].insert(0, informacion[campo["label"] ])
+                        vCampos[id_campo]["entry"].configure(state='readonly')
+      elif (vCedulaExiste == False):
+    
+            for (i, (id_campo, campo)) in enumerate(vCampos.items()):
+                  if i > 1:
+                        vCampos[id_campo]["entry"].configure(state='normal')
+                        vCampos[id_campo]["entry"].delete(0, 'end')
+                        vCampos[id_campo]["entry"].configure(state='readonly')            
+
+#Consulta api
+def Apicall(vCampos,top):
+      parametro = (list( dict.keys( vCampos ) )[1])
+      entry = vCampos[parametro]["entry"]
+      cedula=entry.get()
+      response = requests.get(f'https://api.adamix.net/apec/cedula/{cedula}')
+      informacion = response.json()
+      ValidarCedula(vCampos, informacion, top)
+      
 #Render de tabla
 def tabla(vCampos, top, vVentana):
     top.tree = ttk.Treeview(top, height = 10, columns = [ campo["label"] for campo in vCampos.values()])
@@ -100,9 +134,7 @@ def tabla(vCampos, top, vVentana):
     top.tree.grid(row = len(vCampos.items()), column = 1, columnspan = 2)
 
     for (id_campo, campo) in vCampos.items():
-          if vVentana == "Calificacion":
-                top.tree.column(campo["label"], width=100, minwidth=20) 
-                
+          top.tree.column(campo["label"], width=100, minwidth=20)       
           top.tree.heading(campo["label"], text = campo["label"], anchor = CENTER)
     
 #Leer
@@ -128,9 +160,13 @@ def agregar(vVentana, vCampos, top):
         parametro = (list( dict.keys( vCampos ) )[ key ])
         
         entry = vCampos[parametro]["entry"]
-       
+
         parameters.append(entry.get())
-        entry.delete(0, END)   
+
+        entry.configure(state='normal')
+        entry.delete(0, END)
+        if key>2:
+              entry.configure(state='reaonly')   
         if key != len(dict.keys(vCampos)) - 1:
             query += ','
 
@@ -148,7 +184,7 @@ def nuevovalor(vCampos,vVentana, top, edit_wind):
             parameters.append(entry.get())
       edit_records(parameters,vVentana, top, edit_wind, vCampos)
 
-def editar(vVentana, vCampos, top, frame):
+def editar(vVentana, vCampos, top, vTamano, frame):
     parameters = []
     try:
       top.tree.item(top.tree.selection())['values'][0]
@@ -159,19 +195,11 @@ def editar(vVentana, vCampos, top, frame):
     edit_wind = Toplevel()
     
     edit_wind.title(f'Editar {vVentana}')
-    if vVentana == "Materia" :
-          MyLeftPos = (top.winfo_screenwidth() - 200) / 2
-          myTopPos = (top.winfo_screenheight() - 70) / 2
-          edit_wind.geometry( "%dx%d+%d+%d" % (200, 70, MyLeftPos, myTopPos))  
+    MyLeftPos = (top.winfo_screenwidth() - vTamano[2]) / 2 
+    myTopPos = (top.winfo_screenheight() - vTamano[3]) / 2
+    edit_wind.geometry( "%dx%d+%d+%d" % (vTamano[2], vTamano[3], MyLeftPos, myTopPos))  
 
-    elif vVentana == "Estudiante" : 
-          MyLeftPos = (top.winfo_screenwidth() - 200) / 2
-          myTopPos = (top.winfo_screenheight() - 100) / 2
-          edit_wind.geometry( "%dx%d+%d+%d" % (200, 100, MyLeftPos, myTopPos))           
-    else:   
-          MyLeftPos = (top.winfo_screenwidth() - 230) / 2
-          myTopPos = (top.winfo_screenheight() - 250) / 2
-          edit_wind.geometry( "%dx%d+%d+%d" % (230,250, MyLeftPos, myTopPos))   
+
                
     for (i, (id_campo, campo)) in enumerate(vCampos.items()):
           
@@ -333,24 +361,32 @@ def warning(title, information, top):
 #Informacion
 def estudiantes():
     vVentana="Estudiante"
-    vCampos = {      
+    vTamano=[750, 470, 270, 170]
+    vCampos = {
       "Matricula": {
-        "label": "Matricula",
-      },
+        "label" : "Matricula",
+      },          
+      "Cedula" : { 
+        "label" : "Cedula",
+      },      
       "Nombre": {
-        "label": "Nombre", 
+        "label": "Nombres", 
+      },
+      "Apellido": {
+         "label":"Apellido1",
       },
       "Sexo": {
-        "label": "Sexo"
+        "label": "IdSexo",
       },
-            "Lugar de procedencia": {
-          "label": "Procedencia"
+      "procedencia": {
+          "label": "LugarNacimiento"
           },
     }
-    toplevel(vVentana, vCampos)
+    toplevel(vVentana, vCampos, vTamano)
 
 def materias():
     vVentana="Materia"
+    vTamano=[360, 420, 200, 70]
     vCampos={
       "Nombre": {
         "label": "Nombre",
@@ -359,10 +395,11 @@ def materias():
         "label": "Credito",
       }
     }
-    toplevel(vVentana, vCampos)
+    toplevel(vVentana, vCampos, vTamano)
 
 def calificaciones():
     vVentana="Calificacion"
+    vTamano=[1170, 500, 230, 250]
     vCampos= {
       "Id": {
         "label":"Id"
@@ -395,13 +432,15 @@ def calificaciones():
         "label": "Matricula"
       }
     }
-    toplevel(vVentana, vCampos)
+    toplevel(vVentana, vCampos, vTamano)
 
 # Crear el menu principal
 menubarra = Menu(app)
 menubarra.add_command(label="Estudiantes", command=estudiantes)
 menubarra.add_command(label="Materias", command=materias)
 menubarra.add_command(label="Calificaciones", command=calificaciones)
+
+
 
 # Mostrar el menu
 app.config(menu=menubarra)
