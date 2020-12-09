@@ -5,6 +5,7 @@ Integrantes del grupo:
     Mariel Liberato 20182341
     Armando Peña Martinez 20180192
 """
+import tkinter as tk
 import os.path
 from tkinter import *
 from tkinter import ttk
@@ -17,6 +18,9 @@ from tkinter.ttk import *
 import functools
 import requests
 import json
+from pandas import DataFrame
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 #import folium #importar dependencias para el acceso a mapas 
 
 #Ventana principal
@@ -69,6 +73,33 @@ def toplevel(vVentana, vCampos, vTamano):
     ttk.Button(top, text = 'EDITAR', command = lambda: editar(vVentana, vCampos, top, vTamano, frame)).grid(row = len(vCampos)+1, columnspan = 1, column = 2, sticky = W + E)
     ###################################################################################################################################################################
 
+    provincias = []
+    cantidad = []
+    query = f'Select procedencia, COUNT(*) AS RecuentoFilas from estudiante GROUP BY procedencia HAVING COUNT(*) > 0 ORDER BY procedencia'
+    db_rows = run_query(query)
+    i=0
+    for row in db_rows:
+          provincias.append(row[0])
+          cantidad.append(row[1])
+
+
+
+    print (provincias)  
+    print (cantidad)
+    data1 = {'Provincia': provincias,
+             'Estudiantes': cantidad
+            }
+    df1 = DataFrame(data1,columns=['Provincia','Estudiantes'])
+
+    if vVentana == "Estudiante":
+          figure1 = plt.Figure(figsize=(6,5), dpi=70)
+          ax1 = figure1.add_subplot(111)
+          bar1 = FigureCanvasTkAgg(figure1, top)
+          bar1.get_tk_widget().grid(row = len(vCampos.items())+2, column = 1, columnspan = 2)
+          df1 = df1[['Provincia','Estudiantes']].groupby('Provincia').sum()
+          df1.plot(kind='bar', legend=True, ax=ax1)
+          ax1.set_title('Estudiante por provincia')
+
 #Render de fomrularios
 def render_form(vCampos, top, frame, vVentana):
     #Enter funtion
@@ -89,10 +120,9 @@ def render_form(vCampos, top, frame, vVentana):
         else:
               vCampos[id_campo]["entry"].grid(row = (i), column = 1) 
 
-        if (i == 1):
-              
-              
+        if (i == 1):              
               vCampos[id_campo]["entry"].bind("<Return>", Enter)
+
         if (vVentana == "Estudiante") and (i > 1):
               vCampos[id_campo]["entry"].configure(state='readonly')       
     
@@ -129,7 +159,7 @@ def Apicall(vCampos,top):
       
 #Render de tabla
 def tabla(vCampos, top, vVentana):
-    top.tree = ttk.Treeview(top, height = 10, columns = [ campo["label"] for campo in vCampos.values()])
+    top.tree = ttk.Treeview(top, height = 5, columns = [ campo["label"] for campo in vCampos.values()])
     top.tree.column("#0", width=3, minwidth=1)
     top.tree.grid(row = len(vCampos.items()), column = 1, columnspan = 2)
 
@@ -361,7 +391,7 @@ def warning(title, information, top):
 #Informacion
 def estudiantes():
     vVentana="Estudiante"
-    vTamano=[750, 470, 270, 170]
+    vTamano=[780, 700, 270, 170]
     vCampos = {
       "Matricula": {
         "label" : "Matricula",
@@ -386,7 +416,7 @@ def estudiantes():
 
 def materias():
     vVentana="Materia"
-    vTamano=[360, 420, 200, 70]
+    vTamano=[360, 350, 200, 70]
     vCampos={
       "Nombre": {
         "label": "Nombre",
@@ -399,7 +429,7 @@ def materias():
 
 def calificaciones():
     vVentana="Calificacion"
-    vTamano=[1170, 500, 230, 250]
+    vTamano=[1170, 400, 230, 250]
     vCampos= {
       "Id": {
         "label":"Id"
@@ -439,7 +469,6 @@ menubarra = Menu(app)
 menubarra.add_command(label="Estudiantes", command=estudiantes)
 menubarra.add_command(label="Materias", command=materias)
 menubarra.add_command(label="Calificaciones", command=calificaciones)
-
 
 
 # Mostrar el menu
