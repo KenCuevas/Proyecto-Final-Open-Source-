@@ -503,7 +503,7 @@ menubarra.add_command(label="Calificaciones", command=calificaciones)
 # Mostrar el menu
 app.config(menu=menubarra)
 
-# Combo box de estudiantes #
+# Combo box de estudiantes 
 Estudiantes_combobox = ttk.Combobox(app, width=40)
 Estudiantes_combobox.place(x=110, y=30)
 
@@ -520,5 +520,135 @@ for row in db_rows:
 
 Estudiantes_combobox['values']=estudiante
 
+#coordenadas del mapa
+coorde_mapa = [(1, 'Santo Domingo', '18.47186','-69.89232'),
+             (2, 'Santiago de los Caballeros', '19.4517','-70.69703'),
+             (3, 'Santo Domingo Oeste', '18.5','-70'),
+             (4, 'Santo Domingo Este', '18.48847','-69.85707'),
+             (5, 'San Pedro de Macorís', '18.4539','-69.30864'),
+             (6, 'La Romana', '18.42733','-68.97285'),
+             (7, 'San Cristóbal', '18.41667','-70.1'),
+             (8, 'Puerto Plata', '19.79344','-70.6884'),
+             (9, 'Bonao', '18.93687','-70.40923'),
+             (10, 'San Juan de la Maguana.	18.80588', '-71.22991','$3'),
+             (11, 'Baní', '18.27964','-70.33185'),
+             (12, 'Mao', '19.55186','-71.07813'),
+             (13, 'Moca', '19.39352','-70.52598'),
+             (14, 'Salcedo', '19.37762','-70.41762'),
+             (15, 'Azua', '18.45319','-70.7349'),
+             (16, 'Bella Vista', '18.45539','-69.9454'),
+             (17, 'Cotuí', '19.05272','-70.14939'),
+             (18, 'Nagua', '19.3832','-69.8474'),
+             (19, 'Dajabón', '19.54878','-71.70829'),
+             (20, 'Sabaneta', '19.47793','-71.34125')]
+
+#creacion de tabla coordenadas
+sql= ''' CREATE TABLE COORDENADAS (ID INT (4) PRIMARY KEY NOT NULL, PROVINCIA VARCHAR (50), LATITUD FLOAT (15), LONGITUD FLOAT (15)) '''
+
+#insercion de datos en tabla coordenadas
+try:
+    sql2=''' INSERT INTO COORDENADAS (ID, PROVINCIA, LATITUD, LONGITUD) VALUES (?,?,?,?)'''
+    cursor.executemany(sql2, coorde_mapa)
+
+except sqlite3.IntegrityError as e:
+    print('error SQLite: ', e.args[0])
+
+#funcion para pasar datos al mapa 
+def literalesMapaProvincias(literal):
+    
+    con = sqlite3.connect("Practica4.db")
+    cursor = con.cursor()
+    
+    cursor.execute("""SELECT ESTUDIANTES.MATRICULA, PROVINCIA.NOMBRE, PROVINCIA.LATITUD, PROVINCIA.LONGITUD, CALIFICACIONES.CODIGO
+                        FROM ((CALIFICACIONES 
+                              INNER JOIN ESTUDIANTES ON ESTUDIANTES.MATRICULA = CALIFICACIONES.MATRICULA) 
+                              INNER JOIN PROVINCIA ON ESTUDIANTES.ID_PROVINCIA = PROVINCIA.ID_PROVINCIA) 
+                        WHERE  (((( 
+                            (CALIFICACIONES.FORO1+CALIFICACIONES.FORO2)/2)+
+                            ((CALIFICACIONES.PRACTICA1+CALIFICACIONES.PRACTICA2)/2)+
+                            ((CALIFICACIONES.PRIMERPARCIAL+CALIFICACIONES.SEGUNDOPARCIAL)/2)+
+                            CALIFICACIONES.EXAMENFINAL)/4) > {}) 
+                        AND (((( 
+                            (CALIFICACIONES.FORO1+CALIFICACIONES.FORO2)/2)+
+                            ((CALIFICACIONES.PRACTICA1+CALIFICACIONES.PRACTICA2)/2)+
+                            ((CALIFICACIONES.PRIMERPARCIAL+CALIFICACIONES.SEGUNDOPARCIAL)/2)+
+                            CALIFICACIONES.EXAMENFINAL)/4) < {}) 
+					   """.format(literal[0], literal[1]))
+        
+    literales = cursor.fetchall()
+    
+    cursor.close()
+    con.close()
+    
+    return literales
+    
+#funcion para invocar al mapa    
+def invocarMapaProvincias():
+    
+    fm = folium.Map(location=[18.47186, -69.89232])#Coordenada geografica del pais
+    folium.Marker(location=([19.4517, -70.69703]), popup="<b>Hello</b>",tooltip="Ver Info...").add_top(fm)
+
+
+    con = sqlite3.connect("Practica4.db")
+    cursor = con.cursor()
+
+    provincias = literalesMapaProvincias(LiteralF)
+    color = "red"
+    lit = "El # Total de F's en todas las provincias es de "
+    if Literal.get() == "A":
+        provincias = literalesMapaProvincias(LiteralA)
+        color = "blue"
+        lit = "El # Total de A's en todas las provincias es de "
+    elif Literal.get() == "B":
+        provincias = literalesMapaProvincias(LiteralB)
+        color = "green"
+        lit = "El # Total de B's en todas las provincias es de "
+    elif Literal.get() == "C":
+        provincias = literalesMapaProvincias(LiteralC)
+        color = "orange"
+        lit = "El # Total de C's en todas las provincias es de "
+    elif Literal.get() == "D":
+        provincias = literalesMapaProvincias(LiteralD)
+        color = "pink"
+        lit = "El # Total de D's en todas las provincias es de "
+    
+    ele = len(provincias)
+    
+    br = "<br>"
+
+    for provincia in provincias:
+        folium.Marker([provincia[2], provincia[3]], popup=provincia[1]+br+lit+str(ele), icon=folium.Icon(color=color)).add_to(fm)
+    
+    fm.save("MapaReporte.html")
+    webbrowser.open(file, new=2)
+    
+    cursor.close()
+    con.close()
+
+def mapa():
+    topMapa = Toplevel()
+    topMapa.grab_set()
+    topMapa.attributes('-topmost', 'true')
+    topMapa.geometry("350x75")
+    topMapa.resizable(width=False, height=False)
+    
+    con = sqlite3.connect("Practica4.db")
+    cursor = con.cursor()
+    
+    Grafica = ttk.Button(topMapa, width=10, text="Generar",
+                    command=lambda: invocarMapaProvincias())
+    Grafica.grid(column=2, row=1, padx=10, pady=10)
+    
+    l1 = Label(topMapa, text="Literal: ")
+    l1.grid(column=0, row=1, padx=20, pady=10)
+    
+    c1 = ttk.Combobox(topMapa, textvariable=topMapa)
+    c1.config(width=17, state="readonly")
+    c1.grid(column=1, row=1, padx=10)
+    c1['values'] = ["A", "B", "C", "D", "F"]
+
+   
+    topMapa.mainloop()
+    
 # Mostrar la ventana
 app.mainloop()
