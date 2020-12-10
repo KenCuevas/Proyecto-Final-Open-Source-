@@ -21,7 +21,7 @@ import json
 from pandas import DataFrame
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-#import folium #importar dependencias para el acceso a mapas 
+import folium #importar dependencias para el acceso a mapas 
 
 #Ventana principal
 app = Tk()
@@ -38,7 +38,31 @@ query=str()
 db_name = 'Practica4.db'
 #Tamaño de ventana
 w, h = app.winfo_screenwidth(), app.winfo_screenheight()
-
+'''
+#Coordenadas de las ciudades
+self._data=[(1, 'Santo Domingo', '18.47186','-69.89232'),
+             (2, 'Santiago de los Caballeros', '19.4517','-70.69703'),
+             (3, 'Santo Domingo Oeste', '18.5','-70'),
+             (4, 'Santo Domingo Este', '18.48847','-69.85707'),
+             (5, 'San Pedro de Macorís', '18.4539','-69.30864'),
+             (6, 'La Romana', '18.42733','-68.97285'),
+             (7, 'San Cristóbal', '18.41667','-70.1'),
+             (8, 'Puerto Plata', '19.79344','-70.6884'),
+             (9, 'Bonao', '18.93687','-70.40923'),
+             (10, 'San Juan de la Maguana.	18.80588', '-71.22991','$3'),
+             (11, 'Baní', '18.27964','-70.33185'),
+             (12, 'Mao', '19.55186','-71.07813'),
+             (13, 'Moca', '19.39352','-70.52598'),
+             (14, 'Salcedo', '19.37762','-70.41762'),
+             (15, 'Azua', '18.45319','-70.7349'),
+             (16, 'Bella Vista', '18.45539','-69.9454'),
+             (17, 'Cotuí', '19.05272','-70.14939'),
+             (18, 'Nagua', '19.3832','-69.8474'),
+             (19, 'Dajabón', '19.54878','-71.70829'),
+             (20, 'Sabaneta', '19.47793','-71.34125')]
+if(len(self.consultar('PROVINCIA'))==0):
+            self.insert(self._data,'PROVINCIA',4)
+'''
 #Toplevel
 def toplevel(vVentana, vCampos, vTamano):
     top = Toplevel()
@@ -99,8 +123,13 @@ def toplevel(vVentana, vCampos, vTamano):
           df1 = df1[['Provincia','Estudiantes']].groupby('Provincia').sum()
           df1.plot(kind='bar', legend=True, ax=ax1)
           ax1.set_title('Estudiante por provincia')
+#Creacion de mapa
+fm = folium.Map(location=[18.47186, -69.89232])#Coordenada geografica del pais
+folium.Marker(location=([19.4517, -70.69703]), poput="<b>Hello</b>",tooltip="Ver Info...").add_to(fm)
+fm.save("MapaReporte.html")
+os.system("MapaReporte.html")
 
-#Render de fomrularios
+#Render de formularios
 def render_form(vCampos, top, frame, vVentana):
     #Enter funtion
     def Enter(event):
